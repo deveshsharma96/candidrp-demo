@@ -1,3 +1,5 @@
+from importlib.resources import path
+
 from fastapi import FastAPI, Form, UploadFile, File
 from pymongo import MongoClient
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,12 +31,14 @@ from jose import jwt, JWTError
 
 from pathlib import Path
 
-env_path = Path(__file__).resolve().parent / ".env"
-load_dotenv(dotenv_path=env_path)
+from dotenv import load_dotenv
 
+load_dotenv()
+
+print("MONGO_URL:", os.getenv("MONGO_URL"))
+print("EMAIL_USER:", os.getenv("EMAIL_USER"))
 
 app = FastAPI()
-
 
 
 # admin login password
@@ -49,54 +53,6 @@ def validate_password(password):
         return False
     return True
 
-
-# @app.post("/auth/send-otp")
-# def send_otp(data: dict = Body(...)):
-#     email = data.get("email")
-
-#     if not email:
-#         return {"error": "Email required"}
-
-#     # 🔥 CHECK IF ALREADY REGISTERED
-#     if admins_collection.find_one({"email": email}):
-#         return {"error": "Already exists"}
-
-#     otp = str(random.randint(100000, 999999))
-
-#     otp_collection.insert_one(
-#         {
-#             "email": email,
-#             "otp": otp,
-#             "expires_at": datetime.utcnow() + timedelta(minutes=10),
-#         }
-#     )
-
-#     send_email(
-#         name="Verification",
-#         email=email,
-#         phone="",
-#         company="",
-#         message=f"Your OTP is: {otp}",
-#         file_path=None,
-#     )
-
-#     return {"message": "OTP sent ✅"}
-
-
-# @app.post("/auth/verify-otp")
-# def verify_otp(data: dict = Body(...)):
-#     email = data.get("email")
-#     otp = data.get("otp")
-
-#     record = otp_collection.find_one({"email": email, "otp": otp})
-
-#     if not record:
-#         return {"error": "Invalid OTP"}
-
-#     if record["expires_at"] < datetime.utcnow():
-#         return {"error": "OTP expired"}
-
-#     return {"message": "OTP verified ✅"}
 
 
 # Contact
@@ -330,8 +286,14 @@ def send_email(name, email, phone, company, message, file_path):
 # db = client["candid"]
 
 
-client = MongoClient(os.getenv("MONGO_URL"))
-db = client[os.getenv("DB_NAME")]
+MONGO_URL = os.getenv("MONGO_URL")
+DB_NAME = os.getenv("DB_NAME")
+
+if not MONGO_URL or not DB_NAME:
+    raise Exception("❌ Missing environment variables")
+
+client = MongoClient(MONGO_URL)
+db = client[DB_NAME]
 
 
 news_collection = db["news"]
@@ -590,7 +552,8 @@ async def upload_image(file: UploadFile = File(...)):
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
-    return {"url": f"http://localhost:8000/uploads/{file.filename}"}
+    BASE_URL = os.getenv("BASE_URL")
+    return {"url": f"{BASE_URL}/uploads/{file.filename}"}
 
 
 # @app.post("/add-news")
@@ -716,9 +679,6 @@ def update_job(id: str, data: dict):
 # =====================================================
 
 
-
-
-
 def clean_html(html):
     if not html:
         return html
@@ -756,7 +716,8 @@ async def upload_article(file: UploadFile = File(...)):
 
                 image_paths.append(path)
 
-                return {"src": f"http://localhost:8000/{path}"}
+                BASE_URL = os.getenv("BASE_URL")
+                return {"src": f"{BASE_URL}/{path}"}
 
             except Exception as e:
                 print("IMAGE ERROR:", e)
