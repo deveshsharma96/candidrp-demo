@@ -380,21 +380,23 @@ def verify_password(plain, hashed):
     return pwd_context.verify(plain, hashed)
 
 
-admins = [
-    {
-        "email": "admin@candidrp.com",
-        "password": hash_password("Admin@123"),
-    },
-    {
-        "email": "developer@yuktic.com",
-        "password": hash_password("Admin@123"),
-    },
-]
+@app.on_event("startup")
+def create_admins():
+    admins = [
+        {
+            "email": "admin@candidrp.com",
+            "password": hash_password("Admin@123"),
+        },
+        {
+            "email": "developer@yuktic.com",
+            "password": hash_password("Admin@123"),
+        },
+    ]
 
-for admin in admins:
-    existing = admins_collection.find_one({"email": admin["email"]})
-    if not existing:
-        admins_collection.insert_one(admin)
+    for admin in admins:
+        existing = admins_collection.find_one({"email": admin["email"]})
+        if not existing:
+            admins_collection.insert_one(admin)
 
 
 # def verify_password(plain, hashed):
