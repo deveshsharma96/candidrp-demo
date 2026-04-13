@@ -35,22 +35,6 @@ load_dotenv(dotenv_path=env_path)
 
 app = FastAPI()
 
-import gspread
-from google.oauth2.service_account import Credentials
-
-# 🔐 Setup Google Sheets API
-scope = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-
-creds = Credentials.from_service_account_file("credentials.json", scopes=scope)
-
-client_gsheet = gspread.authorize(creds)
-
-# SHEET_ID = "1sTWFLra6JIS3NYyA_VTW2kcGHsv6DLHpYPvYOQF3SY"
-# SHEET_NAME = "Form_Responses"
-
-
-SHEET_ID = os.getenv("SHEET_ID")
-SHEET_NAME = os.getenv("SHEET_NAME")
 
 
 # admin login password
@@ -732,14 +716,7 @@ def update_job(id: str, data: dict):
 # =====================================================
 
 
-@app.get("/applicants")
-def get_applicants():
-    print("Trying to open sheet:", SHEET_ID)
 
-    sheet = client_gsheet.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
-
-    rows = sheet.get_all_records()
-    return rows
 
 
 def clean_html(html):
