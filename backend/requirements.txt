@@ -5,6 +5,7 @@ python-dotenv
 python-multipart
 requests
 passlib
+bcrypt
 python-jose
 email-validator
 mammoth
