@@ -478,7 +478,7 @@ def admin_login(email: str = Body(...), password: str = Body(...)):
     admin = admins_collection.find_one({"email": email})
 
     if not admin or not verify_password(password, admin["password"]):
-        return {"error": "Invalid credentials"}
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_token({"email": email})
 
