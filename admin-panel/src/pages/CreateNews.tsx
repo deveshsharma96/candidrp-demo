@@ -86,7 +86,7 @@ export default function CreateNews() {
     const match = url.match(/\/d\/(.*?)\//);
     if (match && match[1]) {
       // ✅ BEST WORKING FORMAT
-      return `https://lh3.googleusercontent.com/d/${match[1]}`;
+      return `https://drive.google.com/uc?export=view&id=${match[1]}`;
     }
   }
 
