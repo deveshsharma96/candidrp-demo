@@ -23,6 +23,18 @@ export default function News() {
   const [posts, setPosts] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // ✅ FIX GOOGLE DRIVE IMAGE URL
+  const getDriveImage = (url) => {
+    if (!url) return url;
+
+    const match = url.match(/\/d\/(.*?)\//);
+    if (match) {
+      return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    }
+
+    return url;
+  };
+
   useEffect(() => {
     console.log("API:", import.meta.env.VITE_API_URL);
     // Keeping the original fetch concept as requested
@@ -120,8 +132,10 @@ export default function News() {
                     whileHover={{ scale: 1.04 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     src={
-                      post.sections?.find(s => s.image)?.image ||
-                      post.sections?.find(s => s.images)?.images?.[0] ||
+                      getDriveImage(
+                        post.sections?.find(s => s.image)?.image ||
+                        post.sections?.find(s => s.images)?.images?.[0]
+                      ) ||
                       "https://images.unsplash.com/photo-1504711432869-efd5971ee112?q=80&w=800&auto=format&fit=crop"
                     }
                     className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-500"
