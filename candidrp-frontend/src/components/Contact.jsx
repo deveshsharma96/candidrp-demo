@@ -25,15 +25,15 @@ export default function Contact() {
         jobTitle: location.state?.jobTitle || "",
         jobLocation: location.state?.location || ""
     });
-    
+
 
     const jobTitle = applyData.jobTitle;
     const jobLocation = applyData.jobLocation;
 
     const isFromApply = !!jobTitle;
 
-    
-    
+
+
 
     const [formData, setFormData] = useState({
         email: "",
@@ -45,26 +45,26 @@ export default function Contact() {
     });
 
     useEffect(() => {
-    console.log("API:", import.meta.env.VITE_API_URL);
-    if (jobTitle) {
+        console.log("API:", import.meta.env.VITE_API_URL);
+        if (jobTitle) {
 
-        // ✅ Prefill message (ONLY job title + location)
-        // setFormData(prev => ({
-        //     ...prev,
-        //     message: `Applying for: ${jobTitle}\nLocation: ${jobLocation}`
-        // }));
+            // ✅ Prefill message (ONLY job title + location)
+            // setFormData(prev => ({
+            //     ...prev,
+            //     message: `Applying for: ${jobTitle}\nLocation: ${jobLocation}`
+            // }));
 
-        // ✅ Scroll to form
-        if (formRef.current) {
-            setTimeout(() => {
-                formRef.current.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-            }, 200);
+            // ✅ Scroll to form
+            if (formRef.current) {
+                setTimeout(() => {
+                    formRef.current.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+                }, 200);
+            }
         }
-    }
-}, [jobTitle]);
+    }, [jobTitle]);
 
     const [file, setFile] = useState(null);
 
@@ -76,74 +76,74 @@ export default function Contact() {
     };
 
     const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
+        const selectedFile = e.target.files[0];
 
-    if (!selectedFile) return;
+        if (!selectedFile) return;
 
-    setSelectedFileName(selectedFile.name); 
+        setSelectedFileName(selectedFile.name);
 
-    const allowedTypes = [
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ];
+        const allowedTypes = [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ];
 
-    // ❌ Invalid file type
-    if (!allowedTypes.includes(selectedFile.type)) {
-        setFile(null);
-        setFileError("Only PDF or Word files are allowed");
-        e.target.value = "";
-        return;
-    }
+        // ❌ Invalid file type
+        if (!allowedTypes.includes(selectedFile.type)) {
+            setFile(null);
+            setFileError("Only PDF or Word files are allowed");
+            e.target.value = "";
+            return;
+        }
 
-    // ❌ File too large (5MB)
-    if (selectedFile.size > 5 * 1024 * 1024) {
-        setFile(null);
-        setFileError("File size must be less than 5MB");
-        e.target.value = "";
-        return;
-    }
+        // ❌ File too large (5MB)
+        if (selectedFile.size > 5 * 1024 * 1024) {
+            setFile(null);
+            setFileError("File size must be less than 5MB");
+            e.target.value = "";
+            return;
+        }
 
-    // ✅ Valid file
-    setFile(selectedFile);
-    setFileError("");
-};
+        // ✅ Valid file
+        setFile(selectedFile);
+        setFileError("");
+    };
 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         // 🔥 VALIDATION
-        
-            if (!formData.email || !formData.name || !formData.message) {
+
+        if (!formData.email || !formData.name || !formData.message) {
             alert("Please fill all required fields (Email, Name, Message)");
             return;
-            }
+        }
 
 
-            // 🔥 EMAIL VALIDATION
-            if (!validateEmail(formData.email)) {
+        // 🔥 EMAIL VALIDATION
+        if (!validateEmail(formData.email)) {
             alert("Please enter a valid email address");
             return;
-            }
+        }
 
-            // 🔥 PHONE VALIDATION (only if entered)
-            if (formData.phone && !validatePhone(formData.phone, formData.countryCode)) {
+        // 🔥 PHONE VALIDATION (only if entered)
+        if (formData.phone && !validatePhone(formData.phone, formData.countryCode)) {
             alert("Please enter a valid phone number");
             return;
-            }
+        }
 
-            // file  VALIDATION
-            if (fileError) {
-                return;
-            }
+        // file  VALIDATION
+        if (fileError) {
+            return;
+        }
 
 
         // ✅ NEW: Resume mandatory ONLY for job apply
         if (isFromApply && !file) {
             setFileError("Resume is required for job application");
             return;
-  
+
         }
 
         setLoading(true);
@@ -194,7 +194,13 @@ export default function Contact() {
                 countryCode: "+91",
                 message: ""
             });
+
+
+
             setFile(null);
+
+            setSelectedFileName("");
+            setFileError("");
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
@@ -223,34 +229,34 @@ export default function Contact() {
             y: 0,
             transition: { duration: 0.6, ease: "easeOut" }
         }
-        };
+    };
 
 
 
     // ✅ EMAIL VALIDATION (RFC basic)
-const validateEmail = (email) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-};
+    const validateEmail = (email) => {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
 
-// ✅ PHONE VALIDATION (country-wise basic length check)
-const validatePhone = (phone, countryCode) => {
-  if (!phone) return false;
+    // ✅ PHONE VALIDATION (country-wise basic length check)
+    const validatePhone = (phone, countryCode) => {
+        if (!phone) return false;
 
-  // remove country code from number
-  const number = phone.replace(countryCode.replace("+", ""), "");
+        // remove country code from number
+        const number = phone.replace(countryCode.replace("+", ""), "");
 
-  // basic rules (you can expand later)
-  if (countryCode === "+91") {
-    return number.length === 10; // India
-  }
+        // basic rules (you can expand later)
+        if (countryCode === "+91") {
+            return number.length === 10; // India
+        }
 
-  if (countryCode === "+44") {
-    return number.length >= 10 && number.length <= 11; // UK
-  }
+        if (countryCode === "+44") {
+            return number.length >= 10 && number.length <= 11; // UK
+        }
 
-  // fallback for other countries
-  return number.length >= 6 && number.length <= 14;
-};
+        // fallback for other countries
+        return number.length >= 6 && number.length <= 14;
+    };
 
 
 
@@ -280,7 +286,7 @@ const validatePhone = (phone, countryCode) => {
                         rgba(13, 7, 100, 0) 100%      /* FULL TRANSPARENT */
                         )`
                     }}
-                    ></div>
+                ></div>
 
                 <motion.div
                     initial={{ opacity: 0, x: -80 }}
@@ -288,45 +294,45 @@ const validatePhone = (phone, countryCode) => {
                     transition={{ duration: 1, ease: "easeOut" }}
                     className="relative z-10 max-w-5xl"
                 >
-                   
+
                     <h1 className="text-5xl md:text-6xl font-extrabold text-white tracking-tight mb-6 leading-[1.1] max-w-3xl">
                         Contact {" "}
                         <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                        Us
-                    </span>
+                            Us
+                        </span>
                     </h1>
 
                     <p className="text-xl text-indigo-100 leading-relaxed max-w-xl">
-                            We would love to hear from you. Choose one of the options.
+                        We would love to hear from you. Choose one of the options.
                     </p>
                 </motion.div>
                 {/* Bottom Fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
             </div>
 
             {/* 🔵 LOCATIONS */}
             <div className="bg-gray-50 px-10 py-24">
                 <div className="max-w-6xl mx-auto text-center">
 
-                    
+
                     <motion.p
-                    variants={fadeUp}
-                    initial="hidden"
-                    whileInView="show"
-                    viewport={{ once: true }}
-                    className="leading-relaxed text-center mx-auto max-w-6xl"
+                        variants={fadeUp}
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={{ once: true }}
+                        className="leading-relaxed text-center mx-auto max-w-6xl"
                     >
-                    Bridging talent and opportunity across our global offices, we create meaningful connections that drive organisational success and empower professionals worldwide.
+                        Bridging talent and opportunity across our global offices, we create meaningful connections that drive organisational success and empower professionals worldwide.
                     </motion.p>
 
 
-                    <br/><br/><br/><br/>
+                    <br /><br /><br /><br />
 
                     <h2 className="text-4xl md:text-5xl font-bold text-[#4e0f89] mb-4">
                         Our Locations
                     </h2>
 
-                    <br/><br/><br/>
+                    <br /><br /><br />
 
 
                     <div className="relative flex flex-col md:flex-row">
@@ -451,10 +457,10 @@ const validatePhone = (phone, countryCode) => {
                             />
 
                             <label
-                            htmlFor="fileUpload"
-                            className="cursor-pointer bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+                                htmlFor="fileUpload"
+                                className="cursor-pointer bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
                             >
-                            Choose File {isFromApply && <span className="text-red-500">*</span>}
+                                Choose File {isFromApply && <span className="text-red-500">*</span>}
                             </label>
 
                             <span className="text-xs md:text-sm text-gray-600 truncate max-w-[120px] md:max-w-none">
@@ -488,7 +494,7 @@ const validatePhone = (phone, countryCode) => {
                         </div>
 
 
-                        
+
 
                         {/* RIGHT SIDE → SUBMIT */}
                         <button
@@ -498,10 +504,10 @@ const validatePhone = (phone, countryCode) => {
                             px-8 py-3 rounded text-white flex items-center gap-2 justify-center
                             transition-all duration-300 ease-in-out
                             ${loading
-                                ? "bg-gray-400 cursor-not-allowed scale-95"
-                                : fileError
-                                ? "bg-red-300 cursor-not-allowed opacity-70"
-                                : "bg-gradient-to-r from-purple-800 to-indigo-600 hover:scale-105 active:scale-95"}
+                                    ? "bg-gray-400 cursor-not-allowed scale-95"
+                                    : fileError
+                                        ? "bg-red-300 cursor-not-allowed opacity-70"
+                                        : "bg-gradient-to-r from-purple-800 to-indigo-600 hover:scale-105 active:scale-95"}
                         `}
                         >
                             {loading ? (
