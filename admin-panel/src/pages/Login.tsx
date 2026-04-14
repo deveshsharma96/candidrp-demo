@@ -34,7 +34,7 @@ export default function Login() {
         navigate("/");
       }, 500);
     } catch (err: any) {
-      alert(err?.response?.data?.error || "Login Failed ❌");
+      alert(err?.response?.data?.detail || "Login Failed ❌");
     } finally {
       setIsLoading(false);
     }
