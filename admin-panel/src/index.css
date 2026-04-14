@@ -19,3 +19,17 @@
   background: #f3f4f6;
 }
 
+
+/* ❌ Remove Edge default password reveal icon */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* ✅ Also for Chromium (Edge/Chrome newer versions) */
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none !important;
+}
+
+
