@@ -30,7 +30,7 @@ from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
 
 from pathlib import Path
-
+from fastapi import BackgroundTasks
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -58,6 +58,7 @@ def validate_password(password):
 # Contact
 @app.post("/contact")
 async def contact_form(
+    background_tasks: BackgroundTasks,   # ✅ ADD THIS
     email: str = Form(...),
     name: str = Form(...),
     company: str = Form(""),
@@ -107,10 +108,15 @@ async def contact_form(
     )
 
     # ✅ Send Email
-    try:
-        send_email(name, email, phone, company, message, file_path)
-    except Exception as e:
-        print("EMAIL ERROR:", e)
+    background_tasks.add_task(
+        send_email,
+        name,
+        email,
+        phone,
+        company,
+        message,
+        file_path
+    )
 
     return {"message": "Form submitted & email sent ✅"}
 
@@ -275,15 +281,12 @@ def send_email(name, email, phone, company, message, file_path):
         os.remove(file_path)
 
 
+
+
 # -------------------------
 # ✅ DATABASE
 # -------------------------
 
-
-# client = MongoClient(
-#     "mongodb+srv://candidrp:candidrp1234@cluster0.shhcs3n.mongodb.net/?appName=Cluster0"
-# )
-# db = client["candid"]
 
 
 MONGO_URL = os.getenv("MONGO_URL")
@@ -379,7 +382,6 @@ def verify_password(plain, hashed):
     plain = plain[:72]
     return pwd_context.verify(plain, hashed)
 
-
 @app.on_event("startup")
 def create_admins():
     admins = [
@@ -398,10 +400,6 @@ def create_admins():
         if not existing:
             admins_collection.insert_one(admin)
 
-
-# def verify_password(plain, hashed):
-#     plain = plain[:72]
-#     return pwd_context.verify(plain, hashed)
 
 
 def create_token(data: dict):
@@ -446,30 +444,6 @@ def verify_token(token: str):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
-# @app.post("/auth/register")
-# def register_user(data: dict):
-
-#     email = data.get("email")
-#     password = data.get("password")
-
-#     if not validate_password(password):
-#         return {"error": "Weak password"}
-
-#     if admins_collection.find_one({"email": email}):
-#         return {"error": "Already exists"}
-
-#     admins_collection.insert_one(
-#         {
-#             "email": email,
-#             "name": data.get("name"),
-#             "company": data.get("company"),
-#             "phone": data.get("phone"),
-#             "password": hash_password(password),
-#             "created_at": datetime.utcnow(),
-#         }
-#     )
-
-#     return {"message": "Registered successfully ✅"}
 
 
 @app.post("/admin/login")
@@ -484,36 +458,6 @@ def admin_login(email: str = Body(...), password: str = Body(...)):
 
     return {"message": "Login successful ✅", "token": token}
 
-
-# @app.post("/admin/forgot-password")
-# def forgot_password(email: str = Body(...)):
-
-#     admin = admins_collection.find_one({"email": email})
-
-#     if not admin:
-#         return {"error": "Email not registered"}
-
-#     otp = str(random.randint(100000, 999999))
-
-#     reset_tokens_collection.insert_one(
-#         {
-#             "email": email,
-#             "otp": otp,
-#             "expires_at": datetime.utcnow() + timedelta(minutes=10),
-#         }
-#     )
-
-#     # 🔥 SEND EMAIL (reuse your email function)
-#     send_email(
-#         name="Admin",
-#         email=email,
-#         phone="",
-#         company="",
-#         message=f"Your OTP is: {otp}",
-#         file_path=None,
-#     )
-
-#     return {"message": "OTP sent to email ✅"}
 
 
 @app.post("/admin/reset-password")
@@ -557,11 +501,6 @@ async def upload_image(file: UploadFile = File(...)):
     BASE_URL = os.getenv("BASE_URL")
     return {"url": f"{BASE_URL}/uploads/{file.filename}"}
 
-
-# @app.post("/add-news")
-# async def add_news(data: dict):
-#     news_collection.insert_one(data)
-#     return {"message": "Added"}
 
 
 @app.post("/add-news")
@@ -761,38 +700,6 @@ async def upload_article(file: UploadFile = File(...)):
         return {"error": str(e)}
 
 
-# Notes Section
-# @app.post("/notes")
-# async def save_note(data: dict):
-#     content = data.get("content")
-
-#     if not content:
-#         return {"error": "Content required"}
-
-#     note = {"content": content, "date": datetime.now().isoformat()}
-
-#     inserted = notes_collection.insert_one(note)
-
-#     return {"id": str(inserted.inserted_id), "message": "Note saved ✅"}
-
-
-# @app.get("/notes")
-# def get_notes():
-#     data = list(notes_collection.find().sort("date", -1))
-
-#     for item in data:
-#         item["id"] = str(item["_id"])
-#         del item["_id"]
-
-#     return data
-
-
-# @app.delete("/notes/{id}")
-# def delete_note(id: str):
-#     notes_collection.delete_one({"_id": ObjectId(id)})
-#     return {"message": "Deleted ✅"}
-
-
 @app.get("/notifications")
 def get_notifications():
     data = list(notifications_collection.find().sort("date", -1))
@@ -813,85 +720,8 @@ def delete_notification(id: str):
         return {"error": "Invalid ID"}
 
 
-# notifications_collection.insert_one({
-#     "type": "contact",
-#     "title": f"New Contact: {os.name}",
-#     "message": email,
-#     "link": "/contacts",
-#     "read": False,
-#     "date": datetime.now()
-# })
 
 
-# @app.get("/articles")
-# def get_articles():
-#     articles = list(articles_collection.find())
-
-#     for a in articles:
-#         a["id"] = str(a["_id"])
-#         del a["_id"]
-
-#     return articles
 
 
-# @app.post("/add-article")
-# def add_article(data: dict):
 
-#     sections = data.get("sections", [])
-
-#     # 🔥 CLEAN EACH SECTION TEXT
-#     for sec in sections:
-#         if "text" in sec:
-#             sec["text"] = clean_html(sec["text"])
-
-#     article = {
-#         "title": data.get("title"),
-#         "slug": data.get("slug"),
-#         "sections": sections,
-#         "status": data.get("status", "published"),
-#         "date": data.get("date", datetime.now().isoformat()),
-#     }
-
-#     articles_collection.insert_one(article)
-
-#     return {"message": "Article added ✅"}
-
-
-# @app.get("/article/{slug}")
-# def get_article_by_slug(slug: str):
-#     article = articles_collection.find_one({"slug": slug, "status": "published"})
-
-#     if not article:
-#         return {"error": "Not found"}
-
-#     article["id"] = str(article["_id"])
-#     del article["_id"]
-
-#     # ✅ fallback for old data (VERY IMPORTANT)
-#     if "sections" not in article:
-#         article["sections"] = []
-
-#     for sec in article.get("sections", []):
-#         if "text" in sec:
-#             sec["text"] = html.unescape(sec["text"])
-
-#     return article
-
-
-# @app.delete("/delete-article/{id}")
-# def delete_article(id: str):
-
-#     article = articles_collection.find_one({"_id": ObjectId(id)})
-
-#     if not article:
-#         return {"error": "Not found"}
-
-#     # 🔥 DELETE IMAGES FROM STORAGE
-#     for img in article.get("images", []):
-#         if os.path.exists(img):
-#             os.remove(img)
-
-#     # 🔥 DELETE FROM DB
-#     articles_collection.delete_one({"_id": ObjectId(id)})
-
-#     return {"message": "Article + images deleted ✅"}
