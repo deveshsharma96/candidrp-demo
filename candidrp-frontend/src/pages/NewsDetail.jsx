@@ -15,6 +15,17 @@ export default function NewsDetail() {
   const { slug } = useParams();
   const [post, setPost] = useState(null);
   const [allNews, setAllNews] = useState([]);
+  // ✅ FIX GOOGLE DRIVE IMAGE URL
+  const getDriveImage = (url) => {
+    if (!url) return url;
+
+    const match = url.match(/\/d\/(.*?)\//);
+    if (match) {
+      return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    }
+
+    return url;
+  };
 
   useEffect(() => {
     console.log("API:", import.meta.env.VITE_API_URL);
@@ -120,7 +131,7 @@ export default function NewsDetail() {
           if (sec.type === "image-left") {
             return (
               <div key={i} className="grid md:grid-cols-2 gap-6 my-6">
-                <img src={sec.image} className="rounded" />
+                <img src={getDriveImage(sec.image)} className="rounded" />
                 <div dangerouslySetInnerHTML={{ __html: sec.content }} />
               </div>
             );
@@ -131,7 +142,7 @@ export default function NewsDetail() {
             return (
               <div key={i} className="grid md:grid-cols-2 gap-6 my-6">
                 <div dangerouslySetInnerHTML={{ __html: sec.content }} />
-                <img src={sec.image} className="rounded" />
+                <img src={getDriveImage(sec.image)} className="rounded" />
               </div>
             );
           }
@@ -158,7 +169,7 @@ export default function NewsDetail() {
                   }}
                 >
                   <img
-                    src={sec.image}
+                    src={getDriveImage(sec.image)}
                     style={{
                       width: "100%",
                       objectFit: sec.imageSettings?.objectFit || "cover",
@@ -167,7 +178,7 @@ export default function NewsDetail() {
                     }}
                   />
                 </div>
-                <img src={sec.image2} />
+                <img src={getDriveImage(sec.image2)} />
               </div>
             );
           }
@@ -175,7 +186,7 @@ export default function NewsDetail() {
           // FULL IMAGE
           if (sec.type === "full-image") {
             return (
-              <img key={i} src={sec.image} className="w-full my-6 rounded" />
+              <img key={i} src={getDriveImage(sec.image)} className="w-full my-6 rounded" />
             );
           }
 
@@ -232,7 +243,7 @@ export default function NewsDetail() {
                             <div className="w-20 h-16 rounded-lg overflow-hidden flex-shrink-0">
                               {image ? (
                                 <img
-                                  src={image}
+                                  src={getDriveImage(image)}
                                   className="w-full h-full object-cover group-hover:scale-105 transition"
                                 />
                               ) : (
