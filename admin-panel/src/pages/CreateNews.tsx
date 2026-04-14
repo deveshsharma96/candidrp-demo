@@ -64,11 +64,6 @@ export default function CreateNews() {
 
   if (!updated[index]) return;
 
-  // ✅ convert only image fields
-  if (field === "image" || field === "image2") {
-    value = convertDriveUrl(value);
-  }
-
   updated[index] = {
     ...updated[index],
     [field]: value,
@@ -79,19 +74,19 @@ export default function CreateNews() {
 
 
   
-  const convertDriveUrl = (url: string): string => {
-  if (!url) return "";
+//   const convertDriveUrl = (url: string): string => {
+//   if (!url) return "";
 
-  if (url.includes("drive.google.com")) {
-    const match = url.match(/\/d\/(.*?)\//);
-    if (match && match[1]) {
-      // ✅ BEST WORKING FORMAT
-      return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-    }
-  }
+//   if (url.includes("drive.google.com")) {
+//     const match = url.match(/\/d\/(.*?)\//);
+//     if (match && match[1]) {
+//       // ✅ BEST WORKING FORMAT
+//       return `https://lh3.googleusercontent.com/d/${match[1]}`;
+//     }
+//   }
 
-  return url;
-};
+//   return url;
+// };
 
 
   const handleSubmit = async () => {
@@ -235,28 +230,86 @@ export default function CreateNews() {
                   </h3>
 
                   {/* IMAGE */}
-                  {sec.type.includes("image") && (
-                    <input
-                      placeholder="Image URL"
-                      className="w-full bg-slate-800 border border-white/10 p-3 rounded-lg mb-3 text-white"
-                      value={sec.image}
-                      onChange={(e) =>
-                        updateSection(i, "image", e.target.value)
-                      }
-                    />
-                  )}
+                  {/* SINGLE IMAGE */}
+                    {sec.type.includes("image") && sec.type !== "two-image" && (
+                      <input
+                        type="file"
+                        className="w-full bg-slate-800 border border-white/10 p-3 rounded-lg mb-3 text-white"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+
+                          const formData = new FormData();
+                          formData.append("file", file);
+
+                          const res = await fetch(
+                            `${import.meta.env.VITE_API_URL}/upload`,
+                            {
+                              method: "POST",
+                              body: formData,
+                            }
+                          );
+
+                          const data = await res.json();
+
+                          updateSection(i, "image", data.url);
+                        }}
+                      />
+                    )}
 
                   {/* SECOND IMAGE */}
-                  {sec.type === "two-image" && (
-                    <input
-                      placeholder="Second Image URL"
-                      className="w-full bg-slate-800 border border-white/10 p-3 rounded-lg mb-3 text-white"
-                      value={sec.image2}
-                      onChange={(e) =>
-                        updateSection(i, "image2", e.target.value)
-                      }
-                    />
-                  )}
+                  {/* TWO IMAGE ONLY */}
+                    {sec.type === "two-image" && (
+                      <>
+                        <input
+                          type="file"
+                          className="w-full bg-slate-800 border border-white/10 p-3 rounded-lg mb-3 text-white"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+
+                            const formData = new FormData();
+                            formData.append("file", file);
+
+                            const res = await fetch(
+                              `${import.meta.env.VITE_API_URL}/upload`,
+                              {
+                                method: "POST",
+                                body: formData,
+                              }
+                            );
+
+                            const data = await res.json();
+
+                            updateSection(i, "image", data.url);
+                          }}
+                        />
+
+    <input
+      type="file"
+      className="w-full bg-slate-800 border border-white/10 p-3 rounded-lg mb-3 text-white"
+      onChange={async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/upload`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        const data = await res.json();
+
+        updateSection(i, "image2", data.url);
+      }}
+    />
+  </>
+)}
 
                   {/* TEXT 1 */}
                   {/* {sec.type !== "full-image" && ( */}
