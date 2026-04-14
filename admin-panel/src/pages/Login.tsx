@@ -9,6 +9,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
 
 
   useEffect(() => {
@@ -22,6 +23,8 @@ export default function Login() {
     if (!email || !password) return;
 
     setIsLoading(true);
+    setError("");
+
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/admin/login`, {
@@ -34,7 +37,7 @@ export default function Login() {
         navigate("/");
       }, 500);
     } catch (err: any) {
-      alert(err?.response?.data?.detail || "Login Failed ❌");
+       setError(err?.response?.data?.error || "Invalid credentials ❌");
     } finally {
       setIsLoading(false);
     }
@@ -120,11 +123,15 @@ export default function Login() {
 
                 {/* Input */}
                 <input
-                  type={showPassword ? "text" : "password"}   // 👈 toggle
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"   // ✅ IMPORTANT
                   className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-12 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all"
                   placeholder="••••••••"
                   onChange={(e) => setPassword(e.target.value)}
                 />
+
+
+                
 
                 {/* Eye Toggle */}
                 <button
@@ -134,7 +141,18 @@ export default function Login() {
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
+
+                
+
+
               </div>
+
+              {error && (
+                  <div className="w-full mt-2 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl text-sm flex items-center justify-between">
+                    <span>{error}</span>
+                    
+                  </div>
+                )}
             </div>
 
 
