@@ -493,13 +493,20 @@ def reset_password(email: str = Body(...), new_password: str = Body(...)):
 
 @app.post("/upload")
 async def upload_image(file: UploadFile = File(...)):
-    file_path = f"uploads/{file.filename}"
+    import uuid
+
+    # ✅ unique filename
+    unique_name = f"{uuid.uuid4()}_{file.filename}"
+    file_path = f"uploads/{unique_name}"
 
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
     BASE_URL = os.getenv("BASE_URL")
-    return {"url": f"{BASE_URL}/uploads/{file.filename}"}
+
+    return {
+        "url": f"{BASE_URL}/uploads/{unique_name}"
+    }
 
 
 
@@ -562,8 +569,36 @@ def update_news(id: str, data: dict):
 
 @app.delete("/delete/{id}")
 def delete_news(id: str):
+    news = news_collection.find_one({"_id": ObjectId(id)})
+
+    if not news:
+        return {"error": "News not found"}
+
+    # ✅ collect all image paths
+    image_paths = []
+
+    for sec in news.get("sections", []):
+        if sec.get("image"):
+            image_paths.append(sec["image"])
+        if sec.get("image2"):
+            image_paths.append(sec["image2"])
+
+    # ✅ delete files from uploads folder
+    for img_url in image_paths:
+        try:
+            # extract filename from URL
+            filename = img_url.split("/")[-1]
+            file_path = os.path.join("uploads", filename)
+
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print("Error deleting image:", e)
+
+    # ✅ delete DB record
     news_collection.delete_one({"_id": ObjectId(id)})
-    return {"message": "Deleted"}
+
+    return {"message": "News and images deleted ✅"}
 
 
 # =====================================================
